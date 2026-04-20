@@ -1,27 +1,25 @@
 package user_service.entity;
 
-
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import javax.management.relation.Role;
+import lombok.*;
 import java.time.LocalDateTime;
 
-@Entity    // Tells JPA this is a database table
-@Table(name="users")    //tabel name in mysql
-@Data                  //Lombok: Generates getters, setters, toString
-@NoArgsConstructor     //lombok: generates empty constructor
-@AllArgsConstructor       //lombok: generates constructor with all fields
-@Builder    // Lombok: enables builder pattern -> User.builder().name("Rohit").build()
-
+/**
+ * User Entity
+ * Added: passwordResetToken, passwordResetExpiry for forgot password
+ */
+@Entity
+@Table(name = "users")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
 
-    @Id                  // Primary key
-    @GeneratedValue(strategy = GenerationType.IDENTITY) ///Auto increment(1,2,3,...)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank
@@ -32,57 +30,45 @@ public class User {
     @Column(nullable = false)
     private String lastName;
 
-    @NotBlank
-    @Column(nullable = false)
+    @Email
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @NotBlank
     @Column(nullable = false)
-    private String password;
+    private String password;           // ✅ Now stored as BCrypt hash
 
     @Column(nullable = false)
     private String phone;
 
-    @Enumerated(EnumType.STRING)  //saves roles as String in DB(eg, "ADMIN")
+    @Enumerated(EnumType.STRING)
     private Role role;
 
-    @Column(updatable = false)   // once set this column never updates
+    // ✅ For forgot password flow
+    private String passwordResetToken;          // Random token sent via email
+    private LocalDateTime passwordResetExpiry;  // Token expires after 15 mins
+
+    // ✅ For OAuth (Google/GitHub login)
+    private String oauthProvider;   // "google", "github", or null
+    private String oauthId;         // Provider's user ID
+
+    @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    private LocalDateTime updateAt;
+    private LocalDateTime updatedAt;
 
-    /**
-     * Roles available in the system
-     * CUSTOMER  -> regular user who books hotels
-     * ADMIN   -> System admin
-     * HOTEL_MANAGER   -> maages hotel listing and rooms
-     */
-
-    public enum Role{
-        CUSTOMER,
-        ADMIN,
-        HOTEL_MANAGER
+    public enum Role {
+        CUSTOMER, ADMIN, HOTEL_MANAGER
     }
 
-    /**
-     * Automatically called by JPA BEFORE saving a new record
-     * Sets both createdAt and updatedAt to current time
-     */
     @PrePersist
-    protected void onCreate(){
-        createdAt= LocalDateTime.now();
-        updateAt=LocalDateTime.now();
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        if (role == null) role = Role.CUSTOMER;
     }
 
-    /**
-     * Automatically called by JPA BEFORE updating an existing record
-     * Only updates the updatedAt timestamp
-     */
     @PreUpdate
-    protected void onUpdate(){
-        updateAt=LocalDateTime.now();
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
-
-
-
 }

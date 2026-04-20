@@ -1,24 +1,44 @@
 server:
-  port:8081
+  port: 8080
 
 spring:
   application:
     name: user-service
 
   datasource:
-    url: jdbc:mysql://localhost:3306/hotel_user_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://shinkansen.proxy.rlwy.net:29442/railway?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
     username: root
-    password: Rohit@123
+    password: akTsDxnrZgeqGDgwbWbsECyLeWihkCuk
+#    url: jdbc:mysql://localhost:3306/hotel_user_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+#    username: root
+#    password: Rohit@123
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update    #Auto creates/ updates tables
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
-        format_sql: true
+
+  # Email config for forgot password
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: your_gmail@gmail.com      # ← your Gmail
+    password: your_app_password         # ← Gmail App Password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# JWT Secret Key
+jwt:
+  secret: "hotel_booking_super_secret_key_2024_very_long_string"
+  expiration: 86400000    # 24 hours in milliseconds
 
 eureka:
   client:
@@ -26,7 +46,3 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
   instance:
     prefer-ip-address: true
-
-logging:
-  level:
-    com.hotel.user: DEBUG
